@@ -10,8 +10,8 @@ import { interpretCommand } from "@/lib/commands";
 import { nextQuestion, processUtterance, welcomeLine } from "@/lib/conversation";
 import { defaultWindow } from "@/lib/dates";
 import { commentaryForTrip, preservePacked, tripFromDraft } from "@/lib/packing-engine";
-import { getServerSnapshot, getSnapshot, hydrateFromStorage, setAppState, subscribe } from "@/lib/store";
-import { emptyState, type Exchange, type Trip } from "@/lib/types";
+import { getServerSnapshot, getSnapshot, hydrateFromStorage, resetAppState, setAppState, subscribe } from "@/lib/store";
+import { type Exchange, type Trip } from "@/lib/types";
 import { useSpeech } from "@/lib/use-speech";
 import { fetchWeather, mildFallback } from "@/lib/weather";
 
@@ -80,9 +80,8 @@ export function LeanpackApp() {
 
       try {
         if (command?.kind === "reset") {
-          const fresh = emptyState();
-          setAppState(fresh);
-          await speakAndLog(command.speech, fresh.draft, null);
+          resetAppState();
+          await speakAndLog(command.speech, getSnapshot().draft, null);
           return;
         }
 
@@ -160,7 +159,7 @@ export function LeanpackApp() {
 
   const reset = useCallback(() => {
     speech.hush();
-    setAppState(emptyState());
+    resetAppState();
     speech.speak(welcomeLine());
   }, [speech]);
 
@@ -210,7 +209,9 @@ export function LeanpackApp() {
         </main>
       )}
 
-      <Transcript exchanges={state.exchanges} interim={speech.interim} />
+      {(state.exchanges.length > 0 || speech.interim) && (
+        <Transcript exchanges={state.exchanges} interim={speech.interim} />
+      )}
       <VoiceDock
         listening={speech.listening}
         supported={speech.supported}

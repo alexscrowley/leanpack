@@ -1,7 +1,8 @@
 import { emptyState, type AppState } from "./types";
 import { loadState, saveState } from "./storage";
 
-let snapshot: AppState = emptyState();
+const EMPTY: AppState = emptyState();
+let snapshot: AppState = EMPTY;
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -20,7 +21,7 @@ export function getSnapshot(): AppState {
 }
 
 export function getServerSnapshot(): AppState {
-  return emptyState();
+  return EMPTY;
 }
 
 export function hydrateFromStorage() {
@@ -30,6 +31,12 @@ export function hydrateFromStorage() {
 
 export function setAppState(updater: AppState | ((prev: AppState) => AppState)) {
   snapshot = typeof updater === "function" ? updater(snapshot) : updater;
+  saveState(snapshot);
+  emit();
+}
+
+export function resetAppState() {
+  snapshot = emptyState();
   saveState(snapshot);
   emit();
 }
