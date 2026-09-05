@@ -44,6 +44,89 @@ const STOP_WORDS = new Set([
   "whats",
 ]);
 
+const COMMENTARY_WORDS = new Set([
+  "you",
+  "your",
+  "youre",
+  "not",
+  "very",
+  "smart",
+  "dumb",
+  "stupid",
+  "idiot",
+  "this",
+  "that",
+  "these",
+  "those",
+  "is",
+  "are",
+  "am",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "my",
+  "me",
+  "we",
+  "they",
+  "them",
+  "their",
+  "it",
+  "its",
+  "so",
+  "too",
+  "really",
+  "why",
+  "how",
+  "who",
+  "whom",
+  "because",
+  "but",
+  "if",
+  "then",
+  "than",
+  "can",
+  "cannot",
+  "cant",
+  "dont",
+  "wont",
+  "isnt",
+  "arent",
+  "im",
+  "ive",
+  "a",
+  "an",
+]);
+
+const PLACE_PARTICLES = new Set([
+  "de",
+  "del",
+  "des",
+  "di",
+  "da",
+  "do",
+  "dos",
+  "das",
+  "van",
+  "von",
+  "san",
+  "santa",
+  "santo",
+  "sao",
+  "los",
+  "las",
+  "la",
+  "le",
+  "el",
+  "st",
+  "ste",
+  "saint",
+  "the",
+]);
+
+const CONTRACTION = /^(?:i|you|we|they|it|that|what|who|can|do|wo|is|are|i)(?:'|’)(?:m|re|ve|ll|d|t|s)$/i;
+
 const ACTIVITY_PATTERNS: { activity: Activity; pattern: RegExp }[] = [
   { activity: "hiking", pattern: /\b(hik(?:e|ing)|trail|trekk(?:ing)?|backpacking)\b/i },
   { activity: "running", pattern: /\b(run(?:ning)?|jog(?:ging)?|5k|marathon)\b/i },
@@ -98,7 +181,21 @@ function titleCase(value: string): string {
     .join(" ");
 }
 
-function cleanDestination(raw: string): string | undefined {
+function normalizeWord(word: string): string {
+  return word.toLowerCase().replace(/^[^a-zA-Z]+|[^a-zA-Z]+$/g, "").replace(/['’]/g, "");
+}
+
+function looksLikeCommentary(words: string[]): boolean {
+  return words.some((word) => {
+    if (CONTRACTION.test(word)) return true;
+    const folded = normalizeWord(word);
+    if (!folded) return false;
+    if (PLACE_PARTICLES.has(folded)) return false;
+    return STOP_WORDS.has(folded) || COMMENTARY_WORDS.has(folded);
+  });
+}
+
+function cleanDestination(raw: string, opts: { maxTokens?: number } = {}): string | undefined {
   const trimmed = raw
     .replace(/^[\s,.:;!?-]+/, "")
     .replace(/[\s,.:;!?]+$/, "")
@@ -107,8 +204,9 @@ function cleanDestination(raw: string): string | undefined {
   if (trimmed.length < 2 || trimmed.length > 48) return undefined;
   const alias = CITY_ALIASES[trimmed.toLowerCase()];
   if (alias) return alias;
-  const words = trimmed.split(/\s+/);
-  if (words.some((w) => STOP_WORDS.has(w.toLowerCase()))) return undefined;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (opts.maxTokens && words.length > opts.maxTokens) return undefined;
+  if (looksLikeCommentary(words)) return undefined;
   if (!/[a-zA-Z]/.test(trimmed)) return undefined;
   return titleCase(trimmed);
 }
@@ -142,8 +240,13 @@ export function extractDestination(text: string): string | undefined {
   }
 
   const compact = text.trim();
-  if (compact.split(/\s+/).length <= 4 && !/\d/.test(compact) && !extractActivities(compact).settled) {
-    return cleanDestination(compact);
+  const compactWords = compact.split(/\s+/).filter(Boolean);
+  if (
+    compactWords.length <= 3 &&
+    !/\d/.test(compact) &&
+    !extractActivities(compact).settled
+  ) {
+    return cleanDestination(compact, { maxTokens: 3 });
   }
   return undefined;
 }

@@ -7,7 +7,7 @@ import { TripStrip } from "@/components/TripStrip";
 import { VoiceDock } from "@/components/VoiceDock";
 import { polishReply } from "@/lib/advice";
 import { interpretCommand } from "@/lib/commands";
-import { nextQuestion, processUtterance, welcomeLine } from "@/lib/conversation";
+import { processUtterance, welcomeLine } from "@/lib/conversation";
 import { defaultWindow } from "@/lib/dates";
 import { commentaryForTrip, preservePacked, tripFromDraft } from "@/lib/packing-engine";
 import { getServerSnapshot, getSnapshot, hydrateFromStorage, resetAppState, setAppState, subscribe } from "@/lib/store";
@@ -164,7 +164,7 @@ export function LeanpackApp() {
   }, [speech]);
 
   const greeting = useMemo(() => welcomeLine(), []);
-  const prompt = state.phase === "welcome" ? greeting : nextQuestion(state.draft);
+  const showWelcomePrompt = state.phase === "welcome" && state.exchanges.length === 0;
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col lg:max-w-2xl">
@@ -205,7 +205,9 @@ export function LeanpackApp() {
           <p className="rise delay-1 mt-5 max-w-sm text-[16px] leading-relaxed text-muted">
             City, nights, what you’ll do. I’ll ask about laundry — then cut the list until it fits in one bag.
           </p>
-          <p className="rise delay-2 mt-8 text-[14px] text-gold-dim">{prompt}</p>
+          {showWelcomePrompt && (
+            <p className="rise delay-2 mt-8 text-[14px] text-gold-dim">{greeting}</p>
+          )}
         </main>
       )}
 
