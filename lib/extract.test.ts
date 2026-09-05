@@ -13,6 +13,8 @@ describe("extractDestination", () => {
     assert.equal(extractDestination("nyc"), "New York");
     assert.equal(extractDestination("going to Lisbon for 5 nights"), "Lisbon");
     assert.equal(extractDestination("trip to Kyoto"), "Kyoto");
+    assert.equal(extractDestination("Lisbon, 5 nights"), "Lisbon");
+    assert.equal(extractDestination("Lisbon, 5 nights, sightseeing"), "Lisbon");
   });
 
   it("rejects commentary that is not a place", () => {

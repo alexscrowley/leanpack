@@ -216,7 +216,7 @@ export function extractDestination(text: string): string | undefined {
   if (aliased) return aliased[1];
 
   const patterned = text.match(
-    /\b(?:going to|headed to|flying to|fly to|visit(?:ing)?|trip to|off to|in)\s+([a-zA-Z][a-zA-Z .'-]{1,40}?)(?=\s+(?:for|from|on|next|this|in \d|with|and|,|\.|$)|$)/i,
+    /\b(?:going to|headed to|flying to|fly to|visit(?:ing)?|trip to|off to)\s+([a-zA-Z][a-zA-Z .'-]{1,40}?)(?=\s+(?:for|from|on|next|this|in \d|with|and|,|\.|$)|$)/i,
   );
   if (patterned) {
     const cleaned = cleanDestination(patterned[1]);
@@ -236,6 +236,14 @@ export function extractDestination(text: string): string | undefined {
   );
   if (cityNext) {
     const cleaned = cleanDestination(cityNext[1]);
+    if (cleaned) return cleaned;
+  }
+
+  const leadingCity = text.match(
+    /^([a-zA-Z][a-zA-Z .'-]{1,32}?)\s*(?:,|(?=\s+(?:for|next week|this weekend|\d+|one |two |three |four |five |six |seven )))/i,
+  );
+  if (leadingCity && !/^(?:going|headed|flying|fly|visit|trip|off)\b/i.test(leadingCity[1])) {
+    const cleaned = cleanDestination(leadingCity[1], { maxTokens: 3 });
     if (cleaned) return cleaned;
   }
 
