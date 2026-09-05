@@ -12,6 +12,14 @@ describe("conversation", () => {
     assert.equal((turn.reply.match(/Lisbon/g) ?? []).length, 1);
   });
 
+  it("accepts a bare night count after a city", () => {
+    const first = processUtterance(emptyDraft(), "Lisbon");
+    const second = processUtterance(first.draft, "5");
+    assert.equal(second.draft.nights, 5);
+    assert.match(second.reply, /walk|hike|swim|nothing special/i);
+    assert.doesNotMatch(second.reply, /Lisbon\. Lisbon/);
+  });
+
   it("does not store nonsense as a destination", () => {
     const turn = processUtterance(emptyDraft(), "You're Not Very Smart");
     assert.equal(turn.draft.destination, undefined);

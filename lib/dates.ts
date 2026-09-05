@@ -136,25 +136,33 @@ export function extractDates(text: string, now = new Date()): {
     return { nights: 7 };
   }
 
+  const words: Record<string, number> = {
+    a: 1,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+    twelve: 12,
+  };
+
   const dayMatch = lower.match(/\b(\d+|a|one|two|three|four|five|six|seven|eight|nine|ten|twelve)\s+(?:days?|nights?)\b/);
   if (dayMatch) {
-    const words: Record<string, number> = {
-      a: 1,
-      one: 1,
-      two: 2,
-      three: 3,
-      four: 4,
-      five: 5,
-      six: 6,
-      seven: 7,
-      eight: 8,
-      nine: 9,
-      ten: 10,
-      twelve: 12,
-    };
     const n = words[dayMatch[1]] ?? Number(dayMatch[1]);
     if (Number.isFinite(n) && n > 0) return { nights: n };
   }
+
+  const bare = lower.trim();
+  if (/^\d{1,2}$/.test(bare)) {
+    const n = Number(bare);
+    if (n >= 1 && n <= 60) return { nights: n };
+  }
+  if (words[bare]) return { nights: words[bare] };
 
   const range = text.match(
     /\b(?:from\s+)?((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?|\d{1,2}(?:st|nd|rd|th)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)|20\d{2}-\d{2}-\d{2})\s+(?:to|through|until|–|-|—)\s+((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?|\d{1,2}(?:st|nd|rd|th)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)|20\d{2}-\d{2}-\d{2})\b/i,
