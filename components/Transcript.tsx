@@ -8,7 +8,6 @@ export function Transcript({
   interim?: string;
 }) {
   const last = [...exchanges].reverse().find((e) => e.role === "assistant");
-  const lastUser = [...exchanges].reverse().find((e) => e.role === "user");
 
   return (
     <div className="px-5 pt-2 sm:px-8">
@@ -16,12 +15,7 @@ export function Transcript({
         {interim ? (
           <p className="text-[14px] italic text-gold">{interim}</p>
         ) : last ? (
-          <>
-            {lastUser && (
-              <p className="mb-1.5 text-[12px] text-faint">You · {lastUser.text}</p>
-            )}
-            <p className="text-[14.5px] leading-relaxed text-cream/90">{last.text}</p>
-          </>
+          <p className="text-[14.5px] leading-relaxed text-cream/90">{last.text}</p>
         ) : (
           <p className="text-[14px] text-muted">The last exchange will live here.</p>
         )}

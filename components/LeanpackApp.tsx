@@ -209,17 +209,17 @@ export function LeanpackApp() {
         </main>
       )}
 
-      {(state.exchanges.length > 0 || speech.interim) && (
+      {(state.exchanges.length > 0 || speech.interim || speech.listening) && (
         <Transcript exchanges={state.exchanges} interim={speech.interim} />
       )}
       <VoiceDock
         listening={speech.listening}
         supported={speech.supported}
-        canHold={speech.canHold}
         busy={busy}
+        error={speech.error}
         onStart={() => {
           if (!speech.supported) return;
-          speech.start();
+          void speech.start();
         }}
         onStop={() => speech.stop()}
         onSubmitText={(text) => {
