@@ -8,7 +8,7 @@ This is the app. There is no marketing page in front of it.
 
 ![Leanpack screenshot](docs/screenshot.png)
 
-**Live demo:** TBD
+**Live demo:** [leanpack.vercel.app](https://leanpack.vercel.app)
 
 ## How it feels
 
