@@ -4,6 +4,29 @@ import { processUtterance } from "./conversation";
 import { emptyDraft } from "./types";
 
 describe("conversation", () => {
+  it("asks for nights once after a city, without doubling the destination", () => {
+    const turn = processUtterance(emptyDraft(), "Lisbon");
+    assert.equal(turn.draft.destination, "Lisbon");
+    assert.equal(turn.readyToPack, false);
+    assert.equal(turn.reply, "Lisbon. How many nights?");
+    assert.equal((turn.reply.match(/Lisbon/g) ?? []).length, 1);
+  });
+
+  it("accepts a bare night count after a city", () => {
+    const first = processUtterance(emptyDraft(), "Lisbon");
+    const second = processUtterance(first.draft, "5");
+    assert.equal(second.draft.nights, 5);
+    assert.match(second.reply, /walk|hike|swim|nothing special/i);
+    assert.doesNotMatch(second.reply, /Lisbon\. Lisbon/);
+  });
+
+  it("does not store nonsense as a destination", () => {
+    const turn = processUtterance(emptyDraft(), "You're Not Very Smart");
+    assert.equal(turn.draft.destination, undefined);
+    assert.doesNotMatch(turn.reply, /You're Not Very Smart|Not Very Smart/i);
+    assert.match(turn.reply, /city/i);
+  });
+
   it("asks for laundry even when the rest is complete", () => {
     const turn = processUtterance(emptyDraft(), "Lisbon for five days, hiking and swimming");
     assert.equal(turn.readyToPack, false);
@@ -12,6 +35,7 @@ describe("conversation", () => {
     assert.deepEqual(turn.draft.activities, ["hiking", "swimming"]);
     assert.equal(turn.draft.laundry, "unknown");
     assert.match(turn.reply, /washing machine|laundry/i);
+    assert.equal((turn.reply.match(/Lisbon/g) ?? []).length, 1);
   });
 
   it("packs when laundry is answered", () => {

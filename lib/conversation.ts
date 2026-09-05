@@ -24,6 +24,17 @@ function recap(draft: TripDraft): string {
   return parts.join(", ");
 }
 
+function justCaptured(prev: TripDraft, next: TripDraft): string {
+  const parts: string[] = [];
+  if (next.destination && next.destination !== prev.destination) parts.push(next.destination);
+  if (next.nights && next.nights !== prev.nights) parts.push(nightsPhrase(next.nights));
+  if (next.activitiesSettled && !prev.activitiesSettled) parts.push(activityPhrase(next));
+  if (next.laundry !== "unknown" && prev.laundry === "unknown") {
+    parts.push(next.laundry === "yes" ? "laundry on site" : "no laundry");
+  }
+  return parts.join(", ");
+}
+
 export function welcomeLine(): string {
   return "Where to? Tell me the city, how long, and what you’ll actually do.";
 }
@@ -31,14 +42,8 @@ export function welcomeLine(): string {
 export function nextQuestion(draft: TripDraft): string {
   const missing = missingSlots(draft);
   const first = missing[0];
-  if (first === "destination") {
-    return "Which city? Just the name is enough.";
-  }
-  if (first === "nights") {
-    return draft.destination
-      ? `${draft.destination}. How many nights?`
-      : "How many nights?";
-  }
+  if (first === "destination") return "Which city? Just the name is enough.";
+  if (first === "nights") return "How many nights?";
   if (first === "activities") {
     return "Anything besides walking — hike, swim, run, meetings? Or nothing special.";
   }
@@ -53,13 +58,16 @@ export function processUtterance(draft: TripDraft, text: string): TurnResult {
   const missing = missingSlots(next);
 
   if (!missing.length) {
-    const reply = `${recap(next)}. Checking the weather — then I’ll cut the list down.`;
-    return { draft: next, reply, readyToPack: true };
+    return {
+      draft: next,
+      reply: `${recap(next)}. Checking the weather — then I’ll cut the list down.`,
+      readyToPack: true,
+    };
   }
 
   const asked = nextQuestion(next);
-  const acknowledged = recap(next);
-  const reply = acknowledged && missing[0] !== "destination" ? `${acknowledged}. ${asked}` : asked;
+  const captured = justCaptured(draft, next);
+  const reply = captured ? `${captured}. ${asked}` : asked;
 
   return { draft: next, reply, readyToPack: false };
 }
