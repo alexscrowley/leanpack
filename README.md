@@ -37,8 +37,7 @@ No paid keys required.
 
 1. Use a current Chromium browser (Chrome, Edge, Arc).
 2. Allow the microphone when asked.
-3. **Desktop:** hold the large button and talk.
-4. **Phone:** tap to talk, tap again when you’re done.
+3. Tap the large button to talk, tap again when you’re done.
 
 Safari and Firefox don’t expose `SpeechRecognition` the same way. The text field is the same conversation — destination, nights, activities, laundry, then voice commands once the list exists.
 

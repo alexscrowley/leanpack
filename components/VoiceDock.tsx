@@ -5,22 +5,21 @@ import { useRef } from "react";
 export function VoiceDock({
   listening,
   supported,
-  canHold,
   busy,
+  error,
   onStart,
   onStop,
   onSubmitText,
 }: {
   listening: boolean;
   supported: boolean;
-  canHold: boolean;
   busy: boolean;
+  error?: string | null;
   onStart: () => void;
   onStop: () => void;
   onSubmitText: (text: string) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const holdAt = useRef(0);
 
   return (
     <div className="border-t border-line/70 bg-ink/80 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur-md sm:px-8">
@@ -54,21 +53,10 @@ export function VoiceDock({
           type="button"
           disabled={busy}
           aria-pressed={listening}
-          aria-label={listening ? "Stop listening" : canHold ? "Hold to talk" : "Tap to talk"}
-          onPointerDown={(event) => {
-            if (event.button !== 0) return;
-            event.currentTarget.setPointerCapture(event.pointerId);
-            if (listening) {
-              holdAt.current = 0;
-              onStop();
-              return;
-            }
-            holdAt.current = Date.now();
-            onStart();
-          }}
-          onPointerUp={() => {
-            if (!canHold || holdAt.current === 0) return;
-            onStop();
+          aria-label={listening ? "Listening — tap to stop" : "Tap to talk"}
+          onClick={() => {
+            if (listening) onStop();
+            else onStart();
           }}
           className={`relative grid h-[88px] w-[88px] place-items-center rounded-full select-none touch-manipulation transition-transform duration-200 active:scale-95 disabled:opacity-50 ${
             listening ? "bg-gold text-ink" : "bg-cream text-ink"
@@ -84,8 +72,9 @@ export function VoiceDock({
           <MicIcon listening={listening} />
         </button>
         <p className="mt-3 text-[12px] tracking-[0.16em] text-faint uppercase">
-          {busy ? "Working" : listening ? "Listening" : canHold ? "Hold to talk" : "Tap to talk"}
+          {busy ? "Working" : listening ? "Listening — tap to stop" : "Tap to talk"}
         </p>
+        {error && <p className="mt-2 max-w-xs text-center text-[13px] leading-relaxed text-gold">{error}</p>}
       </div>
     </div>
   );
